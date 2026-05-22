@@ -42,8 +42,8 @@ class CustomSalesInvoice(SalesInvoice):
 			if abs(flt(gle.credit)) != settlement_amount:
 				continue
 
-		gle.account = advance_account
+			gle.account = advance_account
 
-		if gle.credit < 0:
-			gle.debit = abs(gle.credit)
-			gle.credit = 0
+			if gle.credit < 0:
+				gle.debit = abs(gle.credit)
+				gle.credit = 0
