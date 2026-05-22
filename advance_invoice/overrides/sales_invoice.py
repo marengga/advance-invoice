@@ -9,7 +9,7 @@ class CustomSalesInvoice(SalesInvoice):
 		company = frappe.get_doc("Company", self.company)
 		advance_account = company.default_advance_received_account
 
-		if self.is_advance_payment_invoice:
+		if self.custom_is_advance:
 			if not advance_account:
 				frappe.throw(f"Default Advance Received Account has not been set for {company.name}")
 
