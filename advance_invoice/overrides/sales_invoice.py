@@ -1,5 +1,6 @@
 import frappe
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import SalesInvoice
+from frappe.utils import flt
 
 
 class CustomSalesInvoice(SalesInvoice):
@@ -28,10 +29,17 @@ class CustomSalesInvoice(SalesInvoice):
 				gle.account = advance_account
 
 	def replace_advance_settlement(self, gl_entries, advance_account):
+		settlement_amount = abs(
+			sum(d.net_amount for d in self.items if d.item_code == "ADV" and d.amount < 0)
+		)
+
 		settlement_accounts = {d.income_account for d in self.items if d.item_code == "ADV" and d.amount < 0}
 
 		for gle in gl_entries:
 			if gle.account not in settlement_accounts:
+				continue
+
+			if abs(flt(gle.credit)) != settlement_amount:
 				continue
 
 		gle.account = advance_account
@@ -39,7 +47,3 @@ class CustomSalesInvoice(SalesInvoice):
 		if gle.credit < 0:
 			gle.debit = abs(gle.credit)
 			gle.credit = 0
-
-		elif gle.debit < 0:
-			gle.credit = abs(gle.debit)
-			gle.debit = 0
