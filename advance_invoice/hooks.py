@@ -5,6 +5,10 @@ app_description = "Provides support for advance payment invoicing workflows, VAT
 app_email = "marengga@gmail.com"
 app_license = "mit"
 
+override_doctype_class = {
+	"Sales Invoice": "indonesia_advance_invoice.overrides.sales_invoice.CustomSalesInvoice"
+}
+
 # Apps
 # ------------------
 
@@ -246,4 +250,3 @@ app_license = "mit"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
