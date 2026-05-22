@@ -33,7 +33,7 @@ class CustomSalesInvoice(SalesInvoice):
 			sum(d.net_amount for d in self.items if d.item_code == "ADV" and d.amount < 0)
 		)
 
-		settlement_accounts = {d.income_account for d in self.items if d.item_code == "ADV" and d.amount < 0}
+		settlement_accounts = {d.income_account for d in self.items if d.item_code == "ADV"}
 
 		for gle in gl_entries:
 			if gle.account not in settlement_accounts:
