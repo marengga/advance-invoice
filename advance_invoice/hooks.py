@@ -5,9 +5,7 @@ app_description = "Provides support for advance payment invoicing workflows, VAT
 app_email = "marengga@gmail.com"
 app_license = "mit"
 
-override_doctype_class = {
-	"Sales Invoice": "indonesia_advance_invoice.overrides.sales_invoice.CustomSalesInvoice"
-}
+override_doctype_class = {"Sales Invoice": "advance_invoice.overrides.sales_invoice.CustomSalesInvoice"}
 
 # Apps
 # ------------------
