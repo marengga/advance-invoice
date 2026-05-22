@@ -9,10 +9,10 @@ class CustomSalesInvoice(SalesInvoice):
 			return gl_entries
 
 		company = frappe.get_doc("Company", self.company)
-
 		advance_account = company.default_advance_received_account
 		if not advance_account:
 			frappe.throw(f"Default Advance Received Account has not been set for {company.name}")
+
 		self.replace_income_account(gl_entries, advance_account)
 		return gl_entries
 
