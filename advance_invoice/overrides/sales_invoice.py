@@ -21,15 +21,23 @@ class CustomSalesInvoice(SalesInvoice):
 		return gl_entries
 
 	def replace_income_account(self, gl_entries, advance_account):
+		frappe.msgprint("Starting to replace income accounts with advance account in GL entries")
 		item_accounts = {d.income_account for d in self.items if d.income_account}
 
 		for gle in gl_entries:
 			if gle.account in item_accounts and gle.credit > 0:
 				gle.account = advance_account
+				frappe.msgprint(
+					f"Replaced income account {gle.account} with advance account {advance_account} in GL entry {gle.name}"
+				)
 
 	def replace_advance_settlement(self, gl_entries, advance_account):
+		frappe.msgprint("Starting to replace advance settlement accounts in GL entries")
 		settlement_accounts = {d.income_account for d in self.items if d.item_code == "ADV" and d.amount < 0}
 
 		for gle in gl_entries:
 			if gle.account in settlement_accounts and gle.debit > 0:
 				gle.account = advance_account
+				frappe.msgprint(
+					f"Replaced settlement account {gle.account} with advance account {advance_account} in GL entry {gle.name}"
+				)
