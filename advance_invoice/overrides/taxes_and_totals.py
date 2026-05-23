@@ -37,12 +37,4 @@ class CustomTaxesAndTotals(calculate_taxes_and_totals):
 		for item in negative_items:
 			item.distributed_discount_amount = 0
 
-		for item in self.doc.items:
-			item.net_amount = flt(item.amount) - flt(item.distributed_discount_amount)
-
-			item.base_net_amount = flt(item.base_amount) - flt(item.distributed_discount_amount)
-
-			if item.qty:
-				item.net_rate = item.net_amount / item.qty
-
-				item.base_net_rate = item.base_net_amount / item.qty
+		self._calculate()
