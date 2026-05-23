@@ -4,11 +4,6 @@ from frappe.utils import flt
 
 
 class CustomSalesInvoice(SalesInvoice):
-	def calculate_taxes_and_totals(self):
-		super().calculate_taxes_and_totals()
-		self.normalize_advance_item()
-		super().calculate_taxes_and_totals()
-
 	def get_gl_entries(self, warehouse_account=None):
 		gl_entries = super().get_gl_entries(warehouse_account)
 
@@ -27,18 +22,6 @@ class CustomSalesInvoice(SalesInvoice):
 		self.rebalance_gl(gl_entries)
 
 		return gl_entries
-
-	def normalize_advance_item(self):
-		for item in self.items:
-			if item.item_code != "ADV":
-				continue
-
-			if item.amount >= 0:
-				continue
-
-			item.distributed_discount_amount = 0
-			item.net_amount = item.amount
-			item.net_rate = item.rate
 
 	def replace_income_account(self, gl_entries, advance_account):
 		item_accounts = {d.income_account for d in self.items if d.income_account}
