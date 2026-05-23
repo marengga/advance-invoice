@@ -19,6 +19,8 @@ class CustomSalesInvoice(SalesInvoice):
 		if advance_account:
 			self.replace_advance_settlement(gl_entries, advance_account)
 
+		self.rebalance_gl(gl_entries)
+
 		return gl_entries
 
 	def replace_income_account(self, gl_entries, advance_account):
@@ -45,3 +47,45 @@ class CustomSalesInvoice(SalesInvoice):
 			gle.account = advance_account
 			gle.debit = settlement_amount
 			gle.credit = 0
+
+	def rebalance_gl(self, gl_entries):
+		total_debit = sum(flt(d.debit) for d in gl_entries)
+		total_credit = sum(flt(d.credit) for d in gl_entries)
+
+		difference = round(total_debit - total_credit, 2)
+
+		if abs(difference) < 0.01:
+			return
+
+		roundoff = self.get_roundoff_account()
+
+		existing = next(
+			(d for d in gl_entries if d.account == roundoff),
+			None,
+		)
+
+		if existing:
+			if difference > 0:
+				existing.credit += difference
+			else:
+				existing.debit += abs(difference)
+
+			return
+
+		gl_entries.append(
+			self.get_gl_dict(
+				{
+					"account": roundoff,
+					"credit": max(difference, 0),
+					"debit": abs(min(difference, 0)),
+				}
+			)
+		)
+
+	def get_roundoff_account(self):
+		company = frappe.get_cached_doc("Company", self.company)
+
+		if company.round_off_account:
+			return company.round_off_account
+
+		frappe.throw(f"Default Round Off Account has not been set for {company.name}")
