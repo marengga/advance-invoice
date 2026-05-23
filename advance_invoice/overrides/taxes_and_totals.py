@@ -7,36 +7,42 @@ class CustomTaxesAndTotals(calculate_taxes_and_totals):
 		if not self.doc.discount_amount:
 			return super().apply_discount_amount()
 
-		adv_rows = [d for d in self.doc.items if d.item_code == "ADV"]
+		positive_items = [item for item in self.doc.items if flt(item.amount) > 0]
 
-		if not adv_rows:
+		negative_items = [item for item in self.doc.items if flt(item.amount) <= 0]
+
+		if not negative_items:
 			return super().apply_discount_amount()
 
-		positive_items = [d for d in self.doc.items if d.amount > 0]
-
-		positive_total = sum(flt(d.amount) for d in positive_items)
+		positive_total = sum(flt(item.amount) for item in positive_items)
 
 		if not positive_total:
-			return
+			return super().apply_discount_amount()
 
-		discount = flt(self.doc.discount_amount)
-
-		remaining = discount
+		remaining_discount = flt(self.doc.discount_amount)
 
 		for idx, item in enumerate(positive_items):
-			share = round(
-				discount * item.amount / positive_total,
-				2,
-			)
-
 			if idx == len(positive_items) - 1:
-				share = remaining
+				distributed = remaining_discount
+			else:
+				distributed = round(
+					flt(self.doc.discount_amount) * flt(item.amount) / positive_total,
+					self.doc.precision("discount_amount"),
+				)
 
-			remaining -= share
+				remaining_discount -= distributed
 
-			item.distributed_discount_amount = share
+			item.distributed_discount_amount = distributed
 
-		for item in adv_rows:
+		for item in negative_items:
 			item.distributed_discount_amount = 0
 
-		self._calculate()
+		for item in self.doc.items:
+			item.net_amount = flt(item.amount) - flt(item.distributed_discount_amount)
+
+			item.base_net_amount = flt(item.base_amount) - flt(item.distributed_discount_amount)
+
+			if item.qty:
+				item.net_rate = item.net_amount / item.qty
+
+				item.base_net_rate = item.base_net_amount / item.qty
