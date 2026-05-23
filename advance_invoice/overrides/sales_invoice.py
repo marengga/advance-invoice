@@ -4,8 +4,12 @@ from frappe.utils import flt
 
 
 class CustomSalesInvoice(SalesInvoice):
-	def get_gl_entries(self, warehouse_account=None):
+	def calculate_taxes_and_totals(self):
+		super().calculate_taxes_and_totals()
 		self.normalize_advance_item()
+		super().calculate_taxes_and_totals()
+
+	def get_gl_entries(self, warehouse_account=None):
 		gl_entries = super().get_gl_entries(warehouse_account)
 
 		company = frappe.get_doc("Company", self.company)
