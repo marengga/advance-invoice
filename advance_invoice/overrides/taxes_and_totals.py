@@ -4,7 +4,7 @@ from frappe.utils import flt
 
 class CustomTaxesAndTotals(calculate_taxes_and_totals):
 	def apply_discount_amount(self):
-		if not self.doc.additional_discount_amount:
+		if not self.doc.discount_amount:
 			return super().apply_discount_amount()
 
 		adv_rows = [d for d in self.doc.items if d.item_code == "ADV"]
@@ -19,7 +19,7 @@ class CustomTaxesAndTotals(calculate_taxes_and_totals):
 		if not positive_total:
 			return
 
-		discount = flt(self.doc.additional_discount_amount)
+		discount = flt(self.doc.discount_amount)
 
 		remaining = discount
 
