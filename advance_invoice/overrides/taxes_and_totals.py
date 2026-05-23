@@ -1,29 +1,42 @@
 from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
+from frappe.utils import flt
 
 
 class CustomTaxesAndTotals(calculate_taxes_and_totals):
 	def apply_discount_amount(self):
-		super().apply_discount_amount()
-		self.remove_adv_discount_distribution()
+		if not self.doc.additional_discount_amount:
+			return super().apply_discount_amount()
 
-	def remove_adv_discount_distribution(self):
-		for item in self.doc.items:
-			if item.item_code != "ADV":
-				continue
+		adv_rows = [d for d in self.doc.items if d.item_code == "ADV"]
 
-			if item.amount >= 0:
-				continue
+		if not adv_rows:
+			return super().apply_discount_amount()
 
-			distributed = item.distributed_discount_amount or 0
+		positive_items = [d for d in self.doc.items if d.amount > 0]
 
-			if not distributed:
-				continue
+		positive_total = sum(flt(d.amount) for d in positive_items)
 
+		if not positive_total:
+			return
+
+		discount = flt(self.doc.additional_discount_amount)
+
+		remaining = discount
+
+		for idx, item in enumerate(positive_items):
+			share = round(
+				discount * item.amount / positive_total,
+				2,
+			)
+
+			if idx == len(positive_items) - 1:
+				share = remaining
+
+			remaining -= share
+
+			item.distributed_discount_amount = share
+
+		for item in adv_rows:
 			item.distributed_discount_amount = 0
 
-			item.net_amount -= distributed
-			item.base_net_amount -= distributed
-
-			if item.qty:
-				item.net_rate = item.net_amount / item.qty
-				item.base_net_rate = item.base_net_amount / item.qty
+		self._calculate()
