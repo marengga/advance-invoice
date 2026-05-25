@@ -95,7 +95,7 @@ class CustomSalesInvoice(SalesInvoice):
 					"credit": max(difference, 0),
 					"debit": abs(min(difference, 0)),
 					"cost_center": self.cost_center
-					or frappe.get_cached_doc("Company", self.company).default_cost_center,
+					or frappe.get_cached_doc("Company", self.company).cost_center,
 				}
 			)
 		)
