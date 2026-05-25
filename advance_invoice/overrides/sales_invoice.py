@@ -23,12 +23,25 @@ class CustomSalesInvoice(SalesInvoice):
 
 		return gl_entries
 
+	def ensure_cost_center(self, gle):
+		if gle.cost_center:
+			return
+
+		if self.cost_center:
+			gle.cost_center = self.cost_center
+			return
+
+		company = frappe.get_doc("Company", self.company)
+		if company.default_cost_center:
+			gle.cost_center = company.default_cost_center
+
 	def replace_income_account(self, gl_entries, advance_account):
 		item_accounts = {d.income_account for d in self.items if d.income_account}
 
 		for gle in gl_entries:
 			if gle.account in item_accounts and gle.credit > 0:
 				gle.account = advance_account
+				self.ensure_cost_center(gle)
 
 	def replace_advance_settlement(self, gl_entries, advance_account):
 		settlement_rows = [d for d in self.items if d.item_code == "ADV" and d.amount < 0]
@@ -47,6 +60,7 @@ class CustomSalesInvoice(SalesInvoice):
 			gle.account = advance_account
 			gle.debit = settlement_amount
 			gle.credit = 0
+			self.ensure_cost_center(gle)
 
 	def rebalance_gl(self, gl_entries):
 		total_debit = sum(flt(d.debit) for d in gl_entries)
