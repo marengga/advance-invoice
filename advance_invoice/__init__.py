@@ -1,4 +1,4 @@
-__version__ = "0.3.5"
+__version__ = "0.3.7"
 
 import erpnext.controllers.taxes_and_totals as tt
 

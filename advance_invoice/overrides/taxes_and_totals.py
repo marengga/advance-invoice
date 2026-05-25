@@ -24,6 +24,9 @@ class CustomTaxesAndTotals(calculate_taxes_and_totals):
 		negative_items = [item for item in self._items if flt(item.amount) <= 0]
 		for item in negative_items:
 			item.distributed_discount_amount = 0
+			item.net_amount = flt(item.amount, item.precision("net_amount"))
+			item.net_rate = flt(item.rate, item.precision("net_rate"))
+			self._set_in_company_currency(item, ["net_rate", "net_amount"])
 
 		positive_items = [item for item in self._items if flt(item.amount) > 0]
 
@@ -32,7 +35,7 @@ class CustomTaxesAndTotals(calculate_taxes_and_totals):
 			self._calculate()
 			return
 
-		positive_total = sum(flt(item.net_amount) for item in positive_items)
+		positive_total = sum(flt(item.amount) for item in positive_items)
 		if not positive_total:
 			self.discount_amount_applied = True
 			self._calculate()
@@ -49,13 +52,13 @@ class CustomTaxesAndTotals(calculate_taxes_and_totals):
 				distributed_amount = remaining_discount
 			else:
 				distributed_amount = flt(
-					self.doc.discount_amount * flt(item.net_amount) / positive_total,
+					self.doc.discount_amount * flt(item.amount) / positive_total,
 					precision,
 				)
 
 				remaining_discount -= distributed_amount
 
-			adjusted_net_amount = item.net_amount - distributed_amount
+			adjusted_net_amount = item.amount - distributed_amount
 			expected_net_total += adjusted_net_amount
 			item.net_amount = flt(adjusted_net_amount, item.precision("net_amount"))
 			item.distributed_discount_amount = flt(
